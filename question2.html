@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="row">
+        <h1>California Cafe Directory</h1>
+        <input type="text" id="search" placeholder="Search Your Favourite Cafe" onkeyup="searchCafe()">
+    </div>
+
+    <div class="container" id="table">
+        <table>
+            <thead>
+                <tr>
+                    <th> S No. </th>
+                    <th>Cafe Name</th>
+                    <th>Address</th>
+                    <th>Postal Code</th>
+                    <th>Latitude</th>
+                    <th>Longitute</th>
+                </tr>
+            </thead>
+            <tbody id="table1">
+
+            </tbody>
+
+        </table>
+    </div>
+</body>
+
+<script>
+    let places = [];
+    const getCafes = async () => {
+        await fetch("https://raw.githubusercontent.com/debojyoti/places-fake-rest-api/master/cafes.json").then((data) => {
+            return data.json();
+        }).then((cafeNames) => {
+            getPlaces(cafeNames.cafes);
+        })
+    }
+    getCafes();
+
+    const getPlaces = async (cafes) => {
+        await fetch("https://raw.githubusercontent.com/debojyoti/places-fake-rest-api/master/places.json").then((data) => {
+            return data.json();
+        }).then((cafePlaces) => {
+            let results = []; //for Merged Array Result
+            cafes.map((cafe) => {
+                let cafePlace = cafePlaces.places.find(place => place.id === cafe.location_id);
+                if (cafePlace) {
+                    results.push({ name: cafe.name, ...cafePlace });
+                }
+            })
+            createTable(results);
+        })
+    }
+
+    const createTable = (results) => {
+        let tabledata = ""; //for final Table after merging data
+
+        results.map((result, i) => {
+            tabledata += `<tr>
+                    <td>${i + 1}</td>
+                    <td>${result.name}</td>
+                    <td>${result.street_no + ", " + result.locality}</td>
+                    <td>${result.postal_code}</td>
+                    <td>${result.lat}</td>
+                    <td>${result.long}</td>
+                </tr>`
+        })
+        document.getElementById("table1").innerHTML = tabledata;
+    }
+
+    const searchCafe = () => {
+        let searchData = document.getElementById('search').value;// to get searched data
+        let tableData = document.getElementById('table1');//getting into the table
+        let row = tableData.getElementsByTagName('tr'); //getting into the row
+
+        for (var i = 0; i < row.length; i++) {
+            let td = row[i].getElementsByTagName('td')[1]; // selecting 1st index of td
+            if (td) {
+                let textValue = td.textContent || td.innerHTML;
+                if (textValue.toLowerCase().indexOf(searchData.toLowerCase()) > -1) {
+                    row[i].style.display = ""
+                }
+                else {
+                    row[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+</script>
+
+</html>
